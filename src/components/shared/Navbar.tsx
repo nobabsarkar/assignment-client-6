@@ -1,28 +1,25 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
-import { jwtDecode } from "jwt-decode";
-import Image from "next/image";
+import { logOut } from "@/redux/auth/authSlice";
+import { useAppDispatch, useAppSelector } from "@/redux/hook";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
 const Navbar = () => {
-  const [user, setUser] = useState(null);
-  console.log(user);
+  const dispatch = useAppDispatch();
+  const user = useAppSelector((state) => state.auth.user);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    if (token) {
-      const decoded = jwtDecode(token);
-      setUser(decoded);
-    }
+    setIsClient(true);
   }, []);
 
-  //   const user = jwtDecode(token);
-  //   console.log(user);
+  if (!isClient) {
+    return null;
+  }
 
-  const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    setUser(null);
+  const handleLogOut = () => {
+    dispatch(logOut());
   };
 
   const navLinks = (
@@ -36,14 +33,28 @@ const Navbar = () => {
       <li>
         <a>Contact Us</a>
       </li>
-      <li>
-        <a>Dashboard</a>
-      </li>
-      {user ? (
+
+      {user?.role ? (
         <>
-          <li>
-            <a onClick={handleLogout}>Log Out</a>
-          </li>
+          {user?.role === "ADMIN" ? (
+            <>
+              <li>
+                <a>Admin Dashboard</a>
+              </li>
+              <li>
+                <a onClick={handleLogOut}>Log Out</a>
+              </li>
+            </>
+          ) : (
+            <>
+              <li>
+                <a>User Dashboard</a>
+              </li>
+              <li>
+                <a onClick={handleLogOut}>Log Out</a>
+              </li>
+            </>
+          )}
         </>
       ) : (
         <>
@@ -57,6 +68,19 @@ const Navbar = () => {
       )}
     </>
   );
+
+  //   <li>
+  //   <a>Dashboard</a>
+  // </li>
+  // <li>
+  //   <a>Log Out</a>
+  // </li>
+  // <li>
+  //   <Link href="/login">Login</Link>
+  // </li>
+  // <li>
+  //   <Link href="/register">Register</Link>
+  // </li>
 
   return (
     <div className="navbar bg-base-100 shadow">
@@ -92,10 +116,11 @@ const Navbar = () => {
       </div>
       <div className="navbar-end">
         <img
-          style={{ width: "100px", height: "100", borderRadius: "100%" }}
+          style={{ width: "50px", height: "50px", borderRadius: "100%" }}
           src={user?.image}
           alt="image"
         />
+
         {/* <a className="btn">Button</a> */}
       </div>
     </div>

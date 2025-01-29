@@ -1,7 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
+import { useAppDispatch, useAppSelector } from "@/redux/hook";
+import { RootState } from "@/redux/store";
 import Link from "next/link";
-import { useForm } from "react-hook-form";
+import { FormEvent } from "react";
+import {
+  // resetLoginState,
+  setEmail,
+  setPassword,
+} from "../../redux/features/LoginSlice";
+import { useLoginMutation } from "@/redux/auth/authApi";
+import { toast } from "sonner";
+import { setUser } from "@/redux/auth/authSlice";
+import { verifyToken } from "@/utils/verifyToken";
+import { signIn } from "next-auth/react";
 
 export type FormValues = {
   email: string;
@@ -9,10 +21,21 @@ export type FormValues = {
 };
 
 const LoginPage = () => {
-  const { register, handleSubmit } = useForm<FormValues>();
+  const dispatch = useAppDispatch();
+  const { email, password } = useAppSelector((state: RootState) => state.login);
+  const [login] = useLoginMutation();
 
-  const onSubmit = async (data: FormValues) => {
-    console.log(data);
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+
+    const data = await login({ email, password }).unwrap();
+
+    const user = verifyToken(data.data.accessToken);
+
+    if (data.success) {
+      dispatch(setUser({ user: user, token: data.data.accessToken }));
+      toast(data.message);
+    }
   };
 
   return (
@@ -27,16 +50,17 @@ const LoginPage = () => {
           </p>
         </div> */}
         <div className="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
-          <form onSubmit={handleSubmit(onSubmit)} className="card-body">
+          <form onSubmit={handleSubmit} className="card-body">
             <div className="form-control">
               <label className="label">
                 <span className="label-text">Email</span>
               </label>
               <input
                 type="email"
-                {...register("email")}
                 placeholder="Email"
                 className="input input-bordered"
+                onChange={(e) => dispatch(setEmail(e.target.value))}
+                value={email}
                 required
               />
             </div>
@@ -46,9 +70,10 @@ const LoginPage = () => {
               </label>
               <input
                 type="password"
-                {...register("password")}
                 placeholder="Password"
                 className="input input-bordered"
+                onChange={(e) => dispatch(setPassword(e.target.value))}
+                value={password}
                 required
               />
               <label className="label">
@@ -58,7 +83,22 @@ const LoginPage = () => {
               </label>
             </div>
             <div className="form-control mt-6">
-              <button className="btn btn-accent">Login</button>
+              <button type="submit" className="btn btn-accent">
+                Login
+              </button>
+            </div>
+            <div className="form-control mt-6">
+              <button
+                onClick={() =>
+                  signIn("google", {
+                    callbackUrl: "http://localhost:3000",
+                  })
+                }
+                type="submit"
+                className="btn btn-outline btn-accent"
+              >
+                Google Login
+              </button>
             </div>
             <p className="text-center mt-2">
               Dont have an account?{" "}

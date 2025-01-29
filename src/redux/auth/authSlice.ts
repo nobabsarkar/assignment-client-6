@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 import { createSlice } from "@reduxjs/toolkit";
+import { RootState } from "../store";
 // import { RootState } from "../store";
 
 export type TUser = {
@@ -36,5 +37,5 @@ const authSlice = createSlice({
 export const { logOut, setUser } = authSlice.actions;
 export default authSlice.reducer;
 
-// export const useCurrentToekn = (state: RootState) => state.auth.token;
-// export const useCurrentUser = (state: RootState) => state.auth.user;
+export const useCurrentToekn = (state: RootState) => state.auth.token;
+export const useCurrentUser = (state: RootState) => state.auth.user;

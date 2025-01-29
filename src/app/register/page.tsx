@@ -1,20 +1,41 @@
 "use client";
+import { useAppDispatch, useAppSelector } from "@/redux/hook";
 import Link from "next/link";
-import React from "react";
-import { useForm } from "react-hook-form";
+import React, { FormEvent } from "react";
+import {
+  setName,
+  setImage,
+  setEmail,
+  setPassword,
+} from "../../redux/features/RegisterSlice";
+import { RootState } from "@/redux/store";
+import { useSignUpMutation } from "@/redux/auth/authApi";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
-export type UserData = {
-  name: string;
-  image: string;
-  email: string;
-  password: string;
-};
+// export type UserData = {
+//   name: string;
+//   image: string;
+//   email: string;
+//   password: string;
+// };
 
 const RegisterPage = () => {
-  const { register, handleSubmit } = useForm<UserData>();
+  const dispatch = useAppDispatch();
 
-  const onSubmit = async (data: UserData) => {
-    console.log(data);
+  const router = useRouter();
+
+  const { name, image, email, password } = useAppSelector(
+    (state: RootState) => state.register
+  );
+
+  const [signUp] = useSignUpMutation();
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    const user = await signUp({ name, image, email, password });
+    toast(user?.data.message);
+    router.push("/login");
   };
 
   return (
@@ -29,16 +50,17 @@ const RegisterPage = () => {
           </p>
         </div> */}
         <div className="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
-          <form onSubmit={handleSubmit(onSubmit)} className="card-body">
+          <form onSubmit={handleSubmit} className="card-body">
             <div className="form-control">
               <label className="label">
                 <span className="label-text">Name</span>
               </label>
               <input
                 type="text"
-                {...register("name")}
                 placeholder="Name"
                 className="input input-bordered"
+                onChange={(e) => dispatch(setName(e.target.value))}
+                value={name}
                 required
               />
             </div>
@@ -48,9 +70,10 @@ const RegisterPage = () => {
               </label>
               <input
                 type="text"
-                {...register("image")}
                 placeholder="Image"
                 className="input input-bordered"
+                onChange={(e) => dispatch(setImage(e.target.value))}
+                value={image}
                 required
               />
             </div>
@@ -60,9 +83,10 @@ const RegisterPage = () => {
               </label>
               <input
                 type="email"
-                {...register("email")}
                 placeholder="Email"
                 className="input input-bordered"
+                onChange={(e) => dispatch(setEmail(e.target.value))}
+                value={email}
                 required
               />
             </div>
@@ -72,14 +96,17 @@ const RegisterPage = () => {
               </label>
               <input
                 type="password"
-                {...register("password")}
                 placeholder="Password"
                 className="input input-bordered"
+                onChange={(e) => dispatch(setPassword(e.target.value))}
+                value={password}
                 required
               />
             </div>
             <div className="form-control mt-6">
-              <button className="btn btn-accent">Register</button>
+              <button type="submit" className="btn btn-accent">
+                Register
+              </button>
             </div>
             <p className="mt-2 text-center">
               Already have an account?{" "}
